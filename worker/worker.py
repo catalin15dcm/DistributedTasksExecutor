@@ -24,21 +24,21 @@ def fetch_task():
     """Continuously fetches and processes tasks from the master."""
     while True:
         response = requests.get(f'{MASTER_URL}/jobs')
-        jobs = response.json().get('jobs', [])
+        jobs = response.json()
 
-        for job_id, job_data in jobs:
-            if not job_data["finished"]:
-                tokens = job_data["tokens"]
-                
+        for job in jobs:
+            job_id=job['job_id']
+            if not job['finished']:
+                tokens=job['task'].split()
                 try:
                     result = eval("".join(tokens), {"__builtins__": None}, ops)
-                    update_response = requests.post(f'{MASTER_URL}/job/{job_id}', json={
+                    requests.post(f'{MASTER_URL}/job/{job_id}', json={
                         'finished': True,
                         'answer': result
                     })
                     print(f"Processed job {job_id}: {result}")
                 except Exception as e:
-                    update_response = requests.post(f'{MASTER_URL}/job/{job_id}', json={
+                    requests.post(f'{MASTER_URL}/job/{job_id}', json={
                         'finished': True,
                         'answer': f'Error: {str(e)}'
                     })
