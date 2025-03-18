@@ -15,3 +15,6 @@ services:
       - master
     deploy:
       replicas: 3
+    ports:
+      - "0:6000"
+

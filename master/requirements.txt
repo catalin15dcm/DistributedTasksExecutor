@@ -1,4 +1,4 @@
 flask
-flask-socketio
 websockets
-eventlet
+flask-socketio>=5.3.4
+eventlet>=0.33.3

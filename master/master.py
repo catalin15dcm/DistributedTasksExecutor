@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_socketio import SocketIO
 import uuid
 import sqlite3
 import time
@@ -7,6 +8,7 @@ import operator
 import re
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Enable WebSockets for real-time updates
 
 workers= {}
 
@@ -55,6 +57,7 @@ def submit_task():
         cursor = conn.cursor()
         cursor.execute("INSERT INTO jobs (job_id, task, tokens, finished) VALUES (?, ?, ?, ?)", (job_id, data['task'], tokens, 0))
         conn.commit()
+    socketio.emit('new_job', {'job_id': job_id, 'task': data['task']})
     return jsonify({'job_id': job_id, 'finished': False})
 
 @app.get('/job/<job_id>')
@@ -79,6 +82,7 @@ def update_job(job_id):
         cursor = conn.cursor()
         cursor.execute("UPDATE jobs SET finished = ?, answer = ? WHERE job_id = ?", (data['finished'], data['answer'], job_id))
         conn.commit()
+    socketio.emit('job_completed', {'job_id': job_id, 'answer': data['answer']})  
     return jsonify({'status': 'Job updated', 'job_id': job_id})
 
 
@@ -114,4 +118,4 @@ def monitor_workers():
 threading.Thread(target=monitor_workers, daemon=True).start()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
