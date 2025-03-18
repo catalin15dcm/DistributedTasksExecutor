@@ -1,0 +1,16 @@
+
+services:
+  master:
+    build: .
+    container_name: master
+    command: python master.py
+    ports:
+      - "5000:5000"
+
+  worker:
+    build: .
+    depends_on:
+      - master
+    command: python worker.py
+    deploy:
+      replicas: 3
